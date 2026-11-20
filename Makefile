@@ -16,12 +16,12 @@ ifeq ($(OS),Windows_NT)
   EXE      := $(BUILD)/$(APP).exe
   # -H=windowsgui — без чёрного окна консоли при запуске
   LDFLAGS  := -s -w -H=windowsgui
-  COPYDATA := copy /Y $(DATA) $(BUILD)\$(DATA) >NUL
+  COPYDATA := copy /Y $(DATA) $(BUILD)\$(DATA) >NUL && xcopy /E /I /Y /Q examples $(BUILD)\examples >NUL
   CLEAN    := if exist $(BUILD) rmdir /S /Q $(BUILD)
 else
   EXE      := $(BUILD)/$(APP)
   LDFLAGS  := -s -w
-  COPYDATA := cp $(DATA) $(BUILD)/$(DATA)
+  COPYDATA := cp $(DATA) $(BUILD)/$(DATA) && cp -r examples $(BUILD)/
   CLEAN    := rm -rf $(BUILD)
 endif
 
@@ -29,7 +29,7 @@ endif
 
 all: build
 
-## build — собрать приложение в build/ (рядом кладётся programmers.json)
+## build — собрать приложение в build/ (рядом кладутся programmers.json и examples/)
 build:
 	go build -trimpath -ldflags "$(LDFLAGS)" -o $(EXE) .
 	$(COPYDATA)
