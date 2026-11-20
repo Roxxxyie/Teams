@@ -1,0 +1,57 @@
+name: Sync README to main
+
+# Источник README — ветка dev. При каждом изменении README.md в dev
+# он копируется в main (где лежит только README). Относительные ссылки
+# (картинки, файлы проекта) переписываются на ветку dev, потому что
+# самих файлов в main нет.
+
+on:
+  push:
+    branches: [dev]
+    paths: [README.md]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-readme
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v5
+        with:
+          ref: main
+
+      - name: README из dev
+        run: |
+          git fetch --depth=1 origin dev
+          git show origin/dev:README.md > README.md
+
+      - name: Относительные ссылки → ветка dev
+        env:
+          BASE: https://github.com/${{ github.repository }}
+        run: |
+          # ![alt](path)  → .../raw/dev/path  (картинки)
+          # [text](path)  → .../blob/dev/path (ссылки на файлы)
+          # Абсолютные URL, якоря (#...) и mailto: не трогаем.
+          perl -pi -e '
+            s{(!\[[^\]]*\])\((?!https?://|#|mailto:)([^)\s]+)\)}{$1($ENV{BASE}/raw/dev/$2)}g;
+            s{(?<!!)(\[[^\]]*\])\((?!https?://|#|mailto:)([^)\s]+)\)}{$1($ENV{BASE}/blob/dev/$2)}g;
+          ' README.md
+
+      - name: Commit и push в main
+        run: |
+          if git diff --quiet -- README.md; then
+            echo "README в main уже актуален"
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "Sync README from dev (${GITHUB_SHA::7})"
+          git push origin HEAD:main
