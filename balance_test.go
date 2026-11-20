@@ -53,7 +53,7 @@ func TestSplit(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			teams, err := Split(sample, c.k, c.equal)
+			teams, err := Split(sample, c.k, c.equal, 0)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -81,7 +81,7 @@ func TestSplitUnequalSizesBalance(t *testing.T) {
 	// Один сильный против многих слабых: без требования равных размеров
 	// оптимум 100 / 25×4.
 	people := []Programmer{{1, "", 100}, {2, "", 25}, {3, "", 25}, {4, "", 25}, {5, "", 25}}
-	teams, err := Split(people, 2, false)
+	teams, err := Split(people, 2, false, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -92,13 +92,13 @@ func TestSplitUnequalSizesBalance(t *testing.T) {
 }
 
 func TestSplitErrors(t *testing.T) {
-	if _, err := Split(sample, 0, false); err == nil {
+	if _, err := Split(sample, 0, false, 0); err == nil {
 		t.Error("ожидалась ошибка при k=0")
 	}
-	if _, err := Split(sample, 7, false); err == nil {
+	if _, err := Split(sample, 7, false, 0); err == nil {
 		t.Error("ожидалась ошибка при k > n")
 	}
-	if _, err := Split(nil, 1, false); err == nil {
+	if _, err := Split(nil, 1, false, 0); err == nil {
 		t.Error("ожидалась ошибка для пустого списка")
 	}
 }

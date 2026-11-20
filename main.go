@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
@@ -10,12 +9,9 @@ import (
 	"strings"
 )
 
-type input struct {
-	Items []Programmer `json:"items"`
-}
-
 func main() {
 	file := flag.String("file", "programmers.json", "путь к JSON-файлу с участниками")
+	seed := flag.Int64("seed", 0, "номер варианта: 0 — порядок из файла, другое число — другой воспроизводимый вариант")
 	flag.Parse()
 
 	people, err := load(*file)
@@ -29,27 +25,26 @@ func main() {
 	k := askTeams(in, len(people))
 	equal := askYesNo(in, "Обязательно равное количество участников в командах? (д/н): ")
 
-	teams, err := Split(people, k, equal)
+	teams, err := Split(people, k, equal, *seed)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Ошибка:", err)
 		os.Exit(1)
 	}
 	printTeams(teams)
+	fmt.Printf("Вариант (seed): %d — повторить: go run . -seed %d; другой вариант: -seed %d\n",
+		*seed, *seed, *seed+1)
 }
 
 func load(path string) ([]Programmer, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("не удалось прочитать %s: %w", path, err)
 	}
-	var in input
-	if err := json.Unmarshal(data, &in); err != nil {
-		return nil, fmt.Errorf("не удалось разобрать %s: %w", path, err)
+	people, err := Parse(data)
+	if err != nil {
+		return nil, fmt.Errorf("в файле %s %w", path, err)
 	}
-	if len(in.Items) == 0 {
-		return nil, fmt.Errorf("в %s нет участников (поле \"items\")", path)
-	}
-	return in.Items, nil
+	return people, nil
 }
 
 func readLine(in *bufio.Scanner, prompt string) string {

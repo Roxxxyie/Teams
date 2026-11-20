@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"math/rand/v2"
 	"sort"
 )
 
@@ -25,7 +26,13 @@ type Team struct {
 // Алгоритм: жадное распределение (самый сильный — в самую слабую команду),
 // затем локальный поиск: переносы и обмены участниками между командами,
 // пока уменьшается сумма квадратов баллов команд (т.е. разброс).
-func Split(people []Programmer, k int, equalSize bool) ([]Team, error) {
+//
+// seed задаёт вариант распределения. При seed == 0 участники с равными
+// баллами берутся в порядке файла. При другом seed они перемешиваются
+// генератором с этим seed: получается другой, но воспроизводимый состав.
+// Перемешиваются только участники с одинаковыми баллами, поэтому суммы
+// команд (и разброс) от seed не зависят.
+func Split(people []Programmer, k int, equalSize bool, seed int64) ([]Team, error) {
 	n := len(people)
 	if n == 0 {
 		return nil, errors.New("список участников пуст")
@@ -39,6 +46,10 @@ func Split(people []Programmer, k int, equalSize bool) ([]Team, error) {
 
 	sorted := make([]Programmer, n)
 	copy(sorted, people)
+	if seed != 0 {
+		rng := rand.New(rand.NewPCG(uint64(seed), 0x7EA75))
+		rng.Shuffle(n, func(i, j int) { sorted[i], sorted[j] = sorted[j], sorted[i] })
+	}
 	sort.SliceStable(sorted, func(i, j int) bool { return sorted[i].Points > sorted[j].Points })
 
 	teams := make([]Team, k)
