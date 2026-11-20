@@ -1,0 +1,94 @@
+name: CI
+
+# Тесты + сборка под Linux, Windows и macOS.
+# Каждая ОС собирает приложение через Makefile в папку build/
+# и выкладывает её как артефакт сборки (вкладка Actions → запуск → Artifacts).
+# При пуше тега v* (например v1.0.0) архивы ещё и прикрепляются к GitHub Release.
+
+on:
+  push:
+    branches: [main, dev]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux
+            os: ubuntu-latest
+          - name: windows
+            os: windows-latest
+          - name: macos
+            os: macos-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      # Fyne работает через CGO + OpenGL: на Linux нужны заголовки X11/GL.
+      # На Windows gcc (MinGW) уже есть в образе раннера, на macOS — clang.
+      - name: Системные зависимости (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc libgl1-mesa-dev xorg-dev libxkbcommon-dev
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: Тесты
+        run: go test -race ./...
+
+      - name: Сборка (make build)
+        run: |
+          if command -v make >/dev/null 2>&1; then make build; else mingw32-make build; fi
+
+      # Архив внутри job сохраняет права на исполнение (upload-artifact их теряет).
+      - name: Упаковка build/
+        run: |
+          mkdir -p dist
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            7z a -tzip "dist/Teams-${{ matrix.name }}.zip" ./build/*
+          else
+            tar -czf "dist/Teams-${{ matrix.name }}.tar.gz" -C build .
+          fi
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: Teams-${{ matrix.name }}
+          path: dist/*
+          if-no-files-found: error
+
+  release:
+    name: GitHub Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          path: dist
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
