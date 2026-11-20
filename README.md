@@ -2,7 +2,7 @@
 
 Настольное приложение на Go ([Fyne](https://fyne.io)), которое делит участников из JSON-файла на команды так, чтобы суммы баллов (`points`) у команд были как можно ближе друг к другу.
 
-![Окно приложения: 30 участников из examples/hackathon_30.json разделены на 4 команды](https://github.com/Roxxxyie/Teams/blob/dev/internal/resources/image.png?raw=true)
+![Окно приложения: 30 участников из examples/hackathon_30.json разделены на 4 команды](https://github.com/Roxxxyie/Teams/raw/dev/internal/resources/image.png)
 
 *`examples/hackathon_30.json`, 30 участников, 4 команды без требования равных размеров, вариант 9. Суммы команд 375 / 375 / 350 / 350, разброс 25. Это минимально возможное значение: 1450 / 4 = 362,5, а суммы команд кратны 25. Полоски почти одинаковой длины, значит команды ровные.*
 
@@ -16,6 +16,15 @@
 - GNU make. На Windows вместе с MinGW идёт `mingw32-make`.
 
 ## Сборка
+
+Код проекта лежит в ветке `dev` (в `main` только этот README):
+
+```bash
+git clone -b dev https://github.com/Roxxxyie/Teams.git
+cd Teams
+```
+
+Готовые сборки для Windows и macOS можно скачать во вкладке **Actions** (артефакты последнего успешного запуска) или на странице **Releases**.
 
 ```bash
 mingw32-make          # Windows (или make, если установлен GNU make)
