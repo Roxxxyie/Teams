@@ -26,6 +26,9 @@ jobs:
         uses: actions/checkout@v5
         with:
           ref: main
+          # Если main защищена ruleset'ом без обхода для GitHub Actions,
+          # положите fine-grained PAT (Contents: write) в секрет README_SYNC_TOKEN.
+          token: ${{ secrets.README_SYNC_TOKEN || github.token }}
 
       - name: README из dev
         run: |

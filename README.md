@@ -17,6 +17,15 @@
 
 ## Сборка
 
+Код проекта лежит в ветке `dev` (в `main` только этот README):
+
+```bash
+git clone -b dev https://github.com/Roxxxyie/Teams.git
+cd Teams
+```
+
+Готовые сборки для Windows и macOS можно скачать во вкладке **Actions** (артефакты последнего успешного запуска) или на странице **Releases**.
+
 ```bash
 mingw32-make          # Windows (или make, если установлен GNU make)
 make                  # Linux / macOS
