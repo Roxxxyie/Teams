@@ -8,6 +8,7 @@
 APP      := Teams
 BUILD    := build
 DATA     := programmers.json
+RES      := internal/resources
 
 export CGO_ENABLED := 1
 
@@ -16,12 +17,12 @@ ifeq ($(OS),Windows_NT)
   EXE      := $(BUILD)/$(APP).exe
   # -H=windowsgui — без чёрного окна консоли при запуске
   LDFLAGS  := -s -w -H=windowsgui
-  COPYDATA := copy /Y $(DATA) $(BUILD)\$(DATA) >NUL && xcopy /E /I /Y /Q examples $(BUILD)\examples >NUL
+  COPYDATA := copy /Y internal\resources\$(DATA) $(BUILD)\$(DATA) >NUL && xcopy /E /I /Y /Q internal\resources\examples $(BUILD)\examples >NUL
   CLEAN    := if exist $(BUILD) rmdir /S /Q $(BUILD)
 else
   EXE      := $(BUILD)/$(APP)
   LDFLAGS  := -s -w
-  COPYDATA := cp $(DATA) $(BUILD)/$(DATA) && cp -r examples $(BUILD)/
+  COPYDATA := cp $(RES)/$(DATA) $(BUILD)/$(DATA) && cp -r $(RES)/examples $(BUILD)/
   CLEAN    := rm -rf $(BUILD)
 endif
 

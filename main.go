@@ -152,7 +152,9 @@ func (u *ui) build() fyne.CanvasObject {
 // ---------- Загрузка данных ----------
 
 func (u *ui) loadDefault() {
-	candidates := []string{defaultFile}
+	// Текущая папка, internal/resources (запуск из корня репозитория через go run .)
+	// и папка рядом с exe (собранное приложение в build/).
+	candidates := []string{defaultFile, filepath.Join("internal", "resources", defaultFile)}
 	if exe, err := os.Executable(); err == nil {
 		candidates = append(candidates, filepath.Join(filepath.Dir(exe), defaultFile))
 	}
